@@ -2,44 +2,166 @@
 
 
 # Set default values
-PARAM1="default_value1"
-PARAM2="default_value2"
+MAX_JOBS=16
+NICE=5
+SUBMIT_DELAY=72
+CPUS_PER_TASK=15
 
+
+# this is called with the -h help function
 usage() {
-  echo "-i      Input BIDS dataset"
+      echo "-i      Input BIDS dataset"
       echo "-o      Derivatives dir (i.e., where to store the results)"
       echo "-t      Where to store temporary PUMI workflow files on the cluster (MUST BE SOMEWHERE IN /tmp !)"
+      echo "-f      link to the freesurfer license"
       echo "-l      NFS directory that should be used to store the Slurm log files (+ Apptainer SIF file)"
-      echo "-p      PUMI pipeline you want to run (default: '${PIPELINE}')"
-      echo "-r      Nipype plugin params to limit resource usage (default: '${RESOURCES}')"
       echo "-m      Maximum amount of jobs that you want to have running at a time (default: '${MAX_JOBS}')"
       echo "-n      Slurm nice value. The higher the nice value, the lower the priority! (default: '${NICE}')"
-      echo "-b      Which PUMI GitHub branch to install (default: '${BRANCH}')"
       echo "-d      Minimum delay between submission of jobs in seconds (default: '${SUBMIT_DELAY}')"
       echo "-c      CPU's per task (default: '${CPUS_PER_TASK}')"
 }
 
 
 # Parse options
-while getopts "i:o:t:l:p:r:m:n:b:d:c:h" opt; do
+while getopts "i:o:t:l:m:n:d:c:h" opt; do
   case $opt in
     i) INDIR="$OPTARG";;
     o) OUTDIR="$OPTARG";;
-    t) TMP_PUMI="$OPTARG";;
+    t)
+      if [[ "$OPTARG" != "/tmp/"* ]]; then
+        echo "Error: Argument for -t must start with /tmp." >&2
+        exit 1
+      fi
+      TMP_FMRIPREP="$OPTARG";;TMP_FMRIPREP="$OPTARG";;
+    f) FREESURFER_LICENSE=""$OPTARG;;
     l) LOG_PATH="$OPTARG";;
-    p) PIPELINE="$OPTARG";;
-    r) RESOURCES="$OPTARG";;
     m) MAX_JOBS="$OPTARG";;
     n) NICE="$OPTARG";;
-    b) BRANCH="$OPTARG";;
     d) SUBMIT_DELAY="$OPTARG";;
     c) CPUS_PER_TASK="$OPTARG";;
 
     h) usage;;
-
     # catch invalid args
     \?) echo "Invalid option: -$OPTARG" >&2; usage; exit 1;;
     # catch missing args
     :) echo "Option -$OPTARG requires an argument." >&2; usage; exit 1;;
   esac
 done
+
+# write apptainer cache to TMP_FMRIPREP
+APPTAINER_CACHEDIR=${TMP_FMRIPREP}/apptainer_cache
+# Every sub-dataset (containing only one subject) still needs a dataset_description.json
+dataset_description_path="${INDIR}/dataset_description.json"
+
+# Create directories
+mkdir -p "${LOG_PATH}"
+mkdir -p "${OUTDIR}"
+mkdir -p ${TMP_FMRIPREP}/apptainer_cache/
+
+# pull docker image and convert to apptainer
+APPTAINER_CACHEDIR=${TMP_FMRIPREP}/apptainer_cache/ \
+ apptainer build ${TMP_FMRIPREP}//fmriprep.sif docker://poldracklab/fmriprep:latest
+
+# copy to LOG path and remove
+cp ${TMP_FMRIPREP}/PUMI.sif ${TMP_FMRIPREP}/fmriprep.sif
+rm -rf ${TMP_FMRIPREP}
+
+
+
+# iterate over sub folders and
+for participant_folder in ${INDIR}/sub-*; do
+    participant_id=$(basename "participant_folder")
+
+
+    sbatch <<EOF
+#!/bin/bash
+#SBATCH --job-name=participant_${PARTICIPANT_ID}
+#SBATCH --output="${LOG_PATH}/${PARTICIPANT_ID}.out"
+#SBATCH --error="${LOG_PATH}/${PARTICIPANT_ID}.out"
+#SBATCH --time=48:00:00
+#SBATCH --nice=${NICE}
+#SBATCH --cpus-per-task ${CPUS_PER_TASK}
+
+echo "*************************************************************"
+echo "Starting on \$(hostname) at \$(date +"%T")"
+echo "*************************************************************"
+
+# directory for single sub BIDS
+participant_data_in="${TMP_FMRIPREP}/input/${PARTICIPANT_ID}"
+# dir for derivatives
+participant_data_out="${TMP_FMRIPREP}/output/${PARTICIPANT_ID}"
+# dir for temporary files
+participant_tmp="${TMP_FMRIPREP}/tmp/${PARTICIPANT_ID}"
+# dir for apptainer cache
+sub_apptainer_cache_dir=${TMP_FMRIPREP}/apptainer_cache/${PARTICIPANT_ID}/
+# dir for fmriprep apptainer
+fmriprep_dir=${TMP_FMRIPREP}/fmriprep/${PARTICIPANT_ID}/
+
+# clear the dirs if they exist, then create them
+rm -rf "\${participant_data_in}"
+mkdir -p "\${participant_data_in}"
+rm -rf "\${participant_data_out}"
+mkdir -p "\${participant_data_out}"
+rm -rf "\${participant_tmp}"
+mkdir -p "\${participant_tmp}"
+rm -rf \${sub_apptainer_cache_dir}
+mkdir -p \${sub_apptainer_cache_dir}
+rm -rf \${fmriprep_dir}
+mkdir -p \${fmriprep_dir}
+
+# copy the participant data and the description.json from the NFS to the node
+cp -vr "${participant_folder}" "\${participant_data_in}"
+cp -v "${dataset_description_path}" "\${participant_data_in}"
+
+# copy the apptainer image
+mkdir -p ${TMP_FMRIPREP}/apptainer_image/${PARTICIPANT_ID}/
+cp ${LOG_PATH}/fmriprep.sif ${TMP_FMRIPREP}/apptainer_image/${PARTICIPANT_ID}/fmriprep.sif
+
+apptainer run ${TMP_FMRIPREP}/apptainer_image/${PARTICIPANT_ID}/fmriprep.sif \
+          ${participant_data_in} ${participant_data_out} \
+          participant -w ${participant_tmp}
+
+echo "******************** SUBJECT TMP TREE ****************************"
+tree \${participant_tmp}
+echo "***************************************************************"
+echo ""
+echo "******************** SUBJECT DATA OUT TREE ****************************"
+tree \${participant_data_out}
+echo "***********************************************************************"
+
+# Move results to the output directory
+cp -vr \${participant_data_out}/* ${OUTDIR}/
+
+
+# Remove (most) files from cluster
+rm -rf "\${participant_data_in}"
+rm -rf "\${participant_data_out}"
+rm -rf "\${participant_tmp}"
+rm -rf "\${sub_apptainer_cache_dir}"
+
+echo "*************************************************************"
+echo "Ended on \$(hostname) at \$(date +"%T")"
+echo "*************************************************************"
+
+EOF
+
+    while true; do
+        job_count=$(squeue -u "$USER" -h | wc -l)
+
+        if [ ${job_count} -lt ${MAX_JOBS} ]; then
+            echo "Number of jobs (${job_count}) is below the limit (${MAX_JOBS}). Submitting job..."
+            break
+        else
+            echo "Waiting. Current job count: ${job_count}. Limit is ${MAX_JOBS}."
+            sleep 80  # Wait some time before checking again
+        fi
+    done
+
+    sbatch ${job_path}
+    sleep ${SUBMIT_DELAY}  # Do not spawn jobs very fast, even if the amount of jobs is not exceeding the limit
+
+done
+
+echo "--------------------------------------------------------------------"
+echo "Last job script was submitted..."
+echo "--------------------------------------------------------------------"

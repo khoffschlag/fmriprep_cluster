@@ -10,7 +10,7 @@ sudo add-apt-repository -y ppa:apptainer/ppa
 sudo apt update
 sudo apt install -y apptainer
 
-# set fmriprep tmep folder
+# set fmriprep tmp folder
 export TMP_FMRIPREP=$HOME/renglert/PycharmProjects/fmriprep_cluster/temp
 
 # set apptainer cachedir
@@ -19,5 +19,6 @@ export APPTAINER_CACHEDIR=${TMP_FMRIPREP}/apptainer_cache
 # pull and convert docker image
 apptainer build ${TMP_FMRIPREP}/fmriprep.sif docker://poldracklab/fmriprep:latest
 
-# run apptainer from local image
-apptainer run $TMP_FMRIPREP/fmriprep.sif /home/renglert/data/ds002608/ /home/renglert/data/ds002608/derivatives participant --participant-label 004
+# run apptainer from local image, adjusted tmp folder
+apptainer run $TMP_FMRIPREP/fmriprep.sif /home/renglert/data/ds002608/ /home/renglert/data/ds002608/derivatives participant -w TMP_FMRIPREP --participant-label 004
+

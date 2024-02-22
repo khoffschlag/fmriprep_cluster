@@ -1,0 +1,23 @@
+# Running fmriprep on the cluster
+The goal of this document is to help you understand how to run fmriprep on the IKIM cluster
+
+- Slurm will automatically assign nodes to the jobs you submit
+- it is important to limit the communication of the nodes to the NFS file storage
+- the preprocessing of all participants is parallelized only across participants
+- therefore 1 job = 1 participant
+- to minimize IO traffic, everything is handled locally
+
+Here is the basic outline of the "for loop" to submit the jobs
+Iterate over the participants in the NFS folder:
+- copy the container to the node
+- copy the target participant into a BIDS compatible format (incl. dummy description.json)
+- write the temp files locally
+- output the derivatives locally
+- when the preprocessing is complete, copy the derivatives back to the NFS
+- delete everything else (temp files, docker container, single-sub BIDS folder)
+
+To handle an upper limit of jobs, so i.e. only 8 simultaneously, we can submit the jobs with a while loop in the
+participant level for loop. For this we just check the amount of jobs our USER has currently running, compare that
+to the MAX JOBS and either submit a new job (=participant), or we just wait a specific amount and check again, until
+all participants are done.
+
