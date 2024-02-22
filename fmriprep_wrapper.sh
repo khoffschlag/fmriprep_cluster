@@ -119,7 +119,8 @@ cp ${LOG_PATH}/fmriprep.sif ${TMP_FMRIPREP}/apptainer_image/${PARTICIPANT_ID}/fm
 
 apptainer run ${TMP_FMRIPREP}/apptainer_image/${PARTICIPANT_ID}/fmriprep.sif \
           ${participant_data_in} ${participant_data_out} \
-          participant -w ${participant_tmp}
+          participant -w ${participant_tmp} \
+          --fs-license-file ${FREESURFER_LICENSE}
 
 echo "******************** SUBJECT TMP TREE ****************************"
 tree \${participant_tmp}
