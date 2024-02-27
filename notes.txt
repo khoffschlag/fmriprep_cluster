@@ -1,6 +1,6 @@
 # set environment variable for the freesurfer license
 export FS_LICENSE=$HOME/licenses/freesurfer/license.txt
-(fmriprep docker automatically detects $FS_LICENSE)
+(fmriprep docker automatically detects $FS_LICENSE based on the variable name)
 
 # run fmriprep on single participant
 fmriprep-docker /home/renglert/data/ds002608/ /home/renglert/data/ds002608/derivatives --participant-label 004
@@ -11,7 +11,7 @@ sudo apt update
 sudo apt install -y apptainer
 
 # set fmriprep tmp folder
-export TMP_FMRIPREP=$HOME/renglert/PycharmProjects/fmriprep_cluster/temp
+export TMP_FMRIPREP=$HOME/PycharmProjects/fmriprep_cluster/temp
 
 # set apptainer cachedir
 export APPTAINER_CACHEDIR=${TMP_FMRIPREP}/apptainer_cache

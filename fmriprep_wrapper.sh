@@ -24,16 +24,11 @@ usage() {
 
 # Parse options
 while getopts "i:o:t:l:m:n:d:c:h" opt; do
-  case $opt in
+  case "$opt" in
     i) INDIR="$OPTARG";;
     o) OUTDIR="$OPTARG";;
-    t)
-      if [[ "$OPTARG" != "/tmp/"* ]]; then
-        echo "Error: Argument for -t must start with /tmp." >&2
-        exit 1
-      fi
-      TMP_FMRIPREP="$OPTARG";;TMP_FMRIPREP="$OPTARG";;
-    f) FREESURFER_LICENSE=""$OPTARG;;
+    t) TMP_FMRIPREP="$OPTARG";;
+    f) FREESURFER_LICENSE="$OPTARG";;
     l) LOG_PATH="$OPTARG";;
     m) MAX_JOBS="$OPTARG";;
     n) NICE="$OPTARG";;
@@ -49,27 +44,27 @@ while getopts "i:o:t:l:m:n:d:c:h" opt; do
 done
 
 # write apptainer cache to TMP_FMRIPREP
-APPTAINER_CACHEDIR=${TMP_FMRIPREP}/apptainer_cache
+APPTAINER_CACHEDIR="${TMP_FMRIPREP}"/apptainer_cache
 # Every sub-dataset (containing only one subject) still needs a dataset_description.json
 dataset_description_path="${INDIR}/dataset_description.json"
 
 # Create directories
 mkdir -p "${LOG_PATH}"
 mkdir -p "${OUTDIR}"
-mkdir -p ${TMP_FMRIPREP}/apptainer_cache/
+mkdir -p "${TMP_FMRIPREP}"/apptainer_cache/
 
 # pull docker image and convert to apptainer
-APPTAINER_CACHEDIR=${TMP_FMRIPREP}/apptainer_cache/ \
- apptainer build ${TMP_FMRIPREP}//fmriprep.sif docker://poldracklab/fmriprep:latest
+APPTAINER_CACHEDIR="${TMP_FMRIPREP}"/apptainer_cache/ \
+ apptainer build "${TMP_FMRIPREP}"//fmriprep.sif docker://poldracklab/fmriprep:latest
 
 # copy to LOG path and remove
-cp ${TMP_FMRIPREP}/PUMI.sif ${TMP_FMRIPREP}/fmriprep.sif
-rm -rf ${TMP_FMRIPREP}
+cp "${TMP_FMRIPREP}"/fmriprep.sif "${LOG_PATH}"/fmriprep.sif
+rm -rf "${TMP_FMRIPREP}"
 
 
 
 # iterate over sub folders and
-for participant_folder in ${INDIR}/sub-*; do
+for participant_folder in "${INDIR}"/sub-*; do
     participant_id=$(basename "participant_folder")
 
 
@@ -92,10 +87,6 @@ participant_data_in="${TMP_FMRIPREP}/input/${PARTICIPANT_ID}"
 participant_data_out="${TMP_FMRIPREP}/output/${PARTICIPANT_ID}"
 # dir for temporary files
 participant_tmp="${TMP_FMRIPREP}/tmp/${PARTICIPANT_ID}"
-# dir for apptainer cache
-sub_apptainer_cache_dir=${TMP_FMRIPREP}/apptainer_cache/${PARTICIPANT_ID}/
-# dir for fmriprep apptainer
-fmriprep_dir=${TMP_FMRIPREP}/fmriprep/${PARTICIPANT_ID}/
 
 # clear the dirs if they exist, then create them
 rm -rf "\${participant_data_in}"
@@ -104,23 +95,19 @@ rm -rf "\${participant_data_out}"
 mkdir -p "\${participant_data_out}"
 rm -rf "\${participant_tmp}"
 mkdir -p "\${participant_tmp}"
-rm -rf \${sub_apptainer_cache_dir}
-mkdir -p \${sub_apptainer_cache_dir}
-rm -rf \${fmriprep_dir}
-mkdir -p \${fmriprep_dir}
 
 # copy the participant data and the description.json from the NFS to the node
 cp -vr "${participant_folder}" "\${participant_data_in}"
 cp -v "${dataset_description_path}" "\${participant_data_in}"
 
 # copy the apptainer image
-mkdir -p ${TMP_FMRIPREP}/apptainer_image/${PARTICIPANT_ID}/
-cp ${LOG_PATH}/fmriprep.sif ${TMP_FMRIPREP}/apptainer_image/${PARTICIPANT_ID}/fmriprep.sif
+mkdir -p "${TMP_FMRIPREP}"/apptainer_image/"${PARTICIPANT_ID}"/
+cp "${LOG_PATH}"/fmriprep.sif "${TMP_FMRIPREP}"/apptainer_image/"${PARTICIPANT_ID}"/fmriprep.sif
 
-apptainer run ${TMP_FMRIPREP}/apptainer_image/${PARTICIPANT_ID}/fmriprep.sif \
-          ${participant_data_in} ${participant_data_out} \
-          participant -w ${participant_tmp} \
-          --fs-license-file ${FREESURFER_LICENSE}
+apptainer run "${TMP_FMRIPREP}"/apptainer_image/"${PARTICIPANT_ID}"/fmriprep.sif \
+          "${participant_data_in}" "${participant_data_out}" \
+          participant -w "${participant_tmp}" \
+          --fs-license-file "${FREESURFER_LICENSE}"
 
 echo "******************** SUBJECT TMP TREE ****************************"
 tree \${participant_tmp}
@@ -138,7 +125,7 @@ cp -vr \${participant_data_out}/* ${OUTDIR}/
 rm -rf "\${participant_data_in}"
 rm -rf "\${participant_data_out}"
 rm -rf "\${participant_tmp}"
-rm -rf "\${sub_apptainer_cache_dir}"
+rm -rf "\${TMP_FMRIPREP}"
 
 echo "*************************************************************"
 echo "Ended on \$(hostname) at \$(date +"%T")"
