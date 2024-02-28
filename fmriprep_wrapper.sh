@@ -24,7 +24,7 @@ usage() {
 
 
 # Parse options
-while getopts "i:o:t:f:l:m:n:d:c:h" opt; do
+while getopts "i:o:a:t:f:l:m:n:d:c:h" opt; do
   case "$opt" in
     i) INDIR="$OPTARG";;
     o) OUTDIR="$OPTARG";;
