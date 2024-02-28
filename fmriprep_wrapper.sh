@@ -28,7 +28,7 @@ while getopts "i:o:a:t:f:l:m:n:d:c:h" opt; do
   case "$opt" in
     i) INDIR="$OPTARG";;
     o) OUTDIR="$OPTARG";;
-    a) APPTAINER ="$OPTARG";;
+    a) CONTAINER ="$OPTARG";;
     t) TMP_FMRIPREP="$OPTARG";;
     f) FREESURFER_LICENSE="$OPTARG";;
     l) LOG_PATH="$OPTARG";;
@@ -54,8 +54,8 @@ mkdir -p "${OUTDIR}"
 mkdir -p "${TMP_FMRIPREP}"/jobs_scripts/
 
 # iterate over sub folders and
-for participant_folder in "${INDIR}"/sub-*; do
-    PARTICIPANT_ID=$(basename "participant_folder")
+for participant_folder in ${INDIR}/sub-*; do
+    PARTICIPANT_ID=$(basename "$participant_folder")
     job_path="jobs_scripts/job_${PARTICIPANT_ID}.sh"
 
     cat << EOF > "${job_path}"
@@ -92,7 +92,7 @@ cp -v "${dataset_description_path}" "\${participant_data_in}"
 
 # copy the apptainer image
 mkdir -p "${TMP_FMRIPREP}"/apptainer_image/"${PARTICIPANT_ID}"/
-cp "${APPTAINER}" "${TMP_FMRIPREP}"/apptainer_image/"${PARTICIPANT_ID}"/fmriprep.sif
+cp "${CONTAINER}" "${TMP_FMRIPREP}"/apptainer_image/"${PARTICIPANT_ID}"/fmriprep.sif
 
 apptainer run "${TMP_FMRIPREP}"/apptainer_image/"${PARTICIPANT_ID}"/fmriprep.sif \
           "${participant_data_in}" "${participant_data_out}" \
