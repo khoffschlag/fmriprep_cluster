@@ -10,10 +10,11 @@ The goal of this document is to help you understand how to run fmriprep on the I
 Here is the basic outline of the "for loop" to submit the jobs
 Iterate over the participants in the NFS folder:
 - copy the container to the node
-- copy the target participant into a BIDS compatible format (incl. dummy description.json)
-- write the temp files locally
-- output the derivatives locally
-- when the preprocessing is complete, copy the derivatives back to the NFS
+- copy the target participant into a BIDS compatible format (incl. description.json)
+- run the actual analysis, and
+    - write the temp files locally
+    - output the derivatives locally
+- when the analysis is complete, copy the derivatives back to the NFS
 - delete everything else (temp files, docker container, single-sub BIDS folder)
 
 To handle an upper limit of jobs, so i.e. only 8 simultaneously, we can submit the jobs with a while loop in the

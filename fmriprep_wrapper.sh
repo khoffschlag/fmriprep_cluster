@@ -12,7 +12,7 @@ CPUS_PER_TASK=15
 usage() {
       echo "-i      Input BIDS dataset"
       echo "-o      Derivatives dir (i.e., where to store the results)"
-      echo "-t      Where to store temporary PUMI workflow files on the cluster (MUST BE SOMEWHERE IN /tmp !)"
+      echo "-t      Where to store temporary files on the cluster, should be in TMPDIR/yourname or /local/work"
       echo "-f      link to the freesurfer license"
       echo "-l      NFS directory that should be used to store the Slurm log files (+ Apptainer SIF file)"
       echo "-m      Maximum amount of jobs that you want to have running at a time (default: '${MAX_JOBS}')"
@@ -52,6 +52,7 @@ dataset_description_path="${INDIR}/dataset_description.json"
 mkdir -p "${LOG_PATH}"
 mkdir -p "${OUTDIR}"
 mkdir -p "${TMP_FMRIPREP}"/apptainer_cache/
+mkdir -p "${TMP_FMRIPREP}"/jobs_scripts/
 
 # pull docker image and convert to apptainer
 APPTAINER_CACHEDIR="${TMP_FMRIPREP}"/apptainer_cache/ \
@@ -65,12 +66,12 @@ rm -rf "${TMP_FMRIPREP}"
 
 # iterate over sub folders and
 for participant_folder in "${INDIR}"/sub-*; do
-    participant_id=$(basename "participant_folder")
+    PARTICIPANT_ID=$(basename "participant_folder")
+    job_path="jobs_scripts/job_${PARTICIPANT_ID}.sh"
 
-
-    sbatch <<EOF
+    cat << EOF > "${job_path}"
 #!/bin/bash
-#SBATCH --job-name=participant_${PARTICIPANT_ID}
+#SBATCH --job-name=${PARTICIPANT_ID}
 #SBATCH --output="${LOG_PATH}/${PARTICIPANT_ID}.out"
 #SBATCH --error="${LOG_PATH}/${PARTICIPANT_ID}.out"
 #SBATCH --time=48:00:00
