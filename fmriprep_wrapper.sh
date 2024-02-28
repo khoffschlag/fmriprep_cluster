@@ -71,12 +71,14 @@ echo "*************************************************************"
 echo "Starting on \$(hostname) at \$(date +"%T")"
 echo "*************************************************************"
 
+TMP_LOCAL = "${TMPDIR}/renglert/A01"
+
 # directory for single sub BIDS
-participant_data_in="${TMP_FMRIPREP}/input/${PARTICIPANT_ID}"
+participant_data_in="${TMP_LOCAL}/input/${PARTICIPANT_ID}"
 # dir for derivatives
-participant_data_out="${TMP_FMRIPREP}/output/${PARTICIPANT_ID}"
+participant_data_out="${TMP_LOCAL}/output/${PARTICIPANT_ID}"
 # dir for temporary files
-participant_tmp="${TMP_FMRIPREP}/tmp/${PARTICIPANT_ID}"
+participant_tmp="${TMP_LOCAL}/tmp/${PARTICIPANT_ID}"
 
 # clear the dirs if they exist, then create them
 rm -rf "\${participant_data_in}"
@@ -90,14 +92,17 @@ mkdir -p "\${participant_tmp}"
 cp -vr "${participant_folder}" "\${participant_data_in}"
 cp -v "${dataset_description_path}" "\${participant_data_in}"
 
-# copy the apptainer image
-mkdir -p "${TMP_FMRIPREP}"/apptainer_image/"${PARTICIPANT_ID}"/
-cp "${CONTAINER}" "${TMP_FMRIPREP}"/apptainer_image/"${PARTICIPANT_ID}"/fmriprep.sif
+# create local copy of the freesurfer license
+cp -v "${FREESURFER_LICENSE}" "${TMP_LOCAL}/tmp/freesurfer_license.txt"
 
-apptainer run "${TMP_FMRIPREP}"/apptainer_image/"${PARTICIPANT_ID}"/fmriprep.sif \
+# copy the apptainer image
+mkdir -p "${TMP_LOCAL}"/apptainer_image/"${PARTICIPANT_ID}"/
+cp "${CONTAINER}" "${TMP_LOCAL}"/apptainer_image/"${PARTICIPANT_ID}"/fmriprep.sif
+
+apptainer run "${TMP_LOCAL}"/apptainer_image/"${PARTICIPANT_ID}"/fmriprep.sif \
           "${participant_data_in}" "${participant_data_out}" \
           participant -w "${participant_tmp}" \
-          --fs-license-file "${FREESURFER_LICENSE}"
+          --fs-license-file "${TMP_LOCAL}/tmp/freesurfer_license.txt"
 
 echo "******************** SUBJECT TMP TREE ****************************"
 tree \${participant_tmp}
@@ -115,7 +120,8 @@ cp -vr \${participant_data_out}/* ${OUTDIR}/
 rm -rf "\${participant_data_in}"
 rm -rf "\${participant_data_out}"
 rm -rf "\${participant_tmp}"
-rm -rf "\${TMP_FMRIPREP}"
+rm -rf "\${TMP_LOCAL}"
+
 
 echo "*************************************************************"
 echo "Ended on \$(hostname) at \$(date +"%T")"
@@ -139,6 +145,9 @@ EOF
     sleep ${SUBMIT_DELAY}  # Do not spawn jobs very fast, even if the amount of jobs is not exceeding the limit
 
 done
+
+# clean the tmp folder on the wrapper node
+rm -rf "\${TMP_FMRIPREP}"
 
 echo "--------------------------------------------------------------------"
 echo "Last job script was submitted..."

@@ -29,3 +29,6 @@ participant level for loop. For this we just check the amount of jobs our USER h
 to the MAX JOBS and either submit a new job (=participant), or we just wait a specific amount and check again, until
 all participants are done.
 
+There are two types of log files currently created:
+- one automatically named, next to the slurm script which contains the logs of the wrapper that distributes the jobs
+- logs for each participant, stored in the provided folder. This holds the logs on the actual analysis pipeline
