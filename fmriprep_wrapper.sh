@@ -28,7 +28,7 @@ while getopts "i:o:a:t:f:l:m:n:d:c:h" opt; do
   case "$opt" in
     i) INDIR="$OPTARG";;
     o) OUTDIR="$OPTARG";;
-    a) CONTAINER ="$OPTARG";;
+    a) CONTAINER="$OPTARG";;
     t) TMP_FMRIPREP="$OPTARG";;
     f) FREESURFER_LICENSE="$OPTARG";;
     l) LOG_PATH="$OPTARG";;
@@ -51,12 +51,12 @@ dataset_description_path="${INDIR}/dataset_description.json"
 # Create directories
 mkdir -p "${LOG_PATH}"
 mkdir -p "${OUTDIR}"
-mkdir -p "${TMP_FMRIPREP}"/jobs_scripts/
+mkdir -p "${TMP_FMRIPREP}"/job_scripts/
 
 # iterate over sub folders and
 for participant_folder in ${INDIR}/sub-*; do
     PARTICIPANT_ID=$(basename "$participant_folder")
-    job_path="jobs_scripts/job_${PARTICIPANT_ID}.sh"
+    job_path="${TMP_FMRIPREP}/job_scripts/job_${PARTICIPANT_ID}.sh"
 
     cat << EOF > "${job_path}"
 #!/bin/bash

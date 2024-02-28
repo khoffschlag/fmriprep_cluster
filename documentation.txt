@@ -2,6 +2,7 @@
 The goal of this document is to help you understand how to run fmriprep on the IKIM cluster
 
 - Slurm will automatically assign nodes to the jobs you submit
+- one node will be occupied for the wrapper of the slurm jobs
 - it is important to limit the communication of the nodes to the NFS file storage
 - the preprocessing of all participants is parallelized only across participants
 - therefore 1 job = 1 participant
