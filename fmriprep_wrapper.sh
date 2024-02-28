@@ -71,14 +71,16 @@ echo "*************************************************************"
 echo "Starting on \$(hostname) at \$(date +"%T")"
 echo "*************************************************************"
 
-TMP_LOCAL="${TMPDIR}/renglert/A01"
+TMP_LOCAL="/local/work/renglert/A01"
+echo "\${TMP_LOCAL}"
 
 # directory for single sub BIDS
-participant_data_in="${TMP_LOCAL}/input/${PARTICIPANT_ID}"
+participant_data_in="\${TMP_LOCAL}/input/${PARTICIPANT_ID}/"
+echo "\${participant_data_in}"
 # dir for derivatives
-participant_data_out="${TMP_LOCAL}/output/${PARTICIPANT_ID}"
+participant_data_out="\${TMP_LOCAL}/output/${PARTICIPANT_ID}/"
 # dir for temporary files
-participant_tmp="${TMP_LOCAL}/tmp/${PARTICIPANT_ID}"
+participant_tmp="\${TMP_LOCAL}/tmp/${PARTICIPANT_ID}/"
 
 # clear the dirs if they exist, then create them
 rm -rf "\${participant_data_in}"
@@ -96,13 +98,13 @@ cp -v "${dataset_description_path}" "\${participant_data_in}"
 cp -v "${FREESURFER_LICENSE}" "${TMP_LOCAL}/tmp/freesurfer_license.txt"
 
 # copy the apptainer image
-mkdir -p "${TMP_LOCAL}"/apptainer_image/"${PARTICIPANT_ID}"/
-cp "${CONTAINER}" "${TMP_LOCAL}"/apptainer_image/"${PARTICIPANT_ID}"/fmriprep.sif
+mkdir -p "\${TMP_LOCAL}"/apptainer_image/"${PARTICIPANT_ID}"/
+cp "${CONTAINER}" "\${TMP_LOCAL}"/apptainer_image/"${PARTICIPANT_ID}"/fmriprep.sif
 
-apptainer run "${TMP_LOCAL}"/apptainer_image/"${PARTICIPANT_ID}"/fmriprep.sif \
-          "${participant_data_in}" "${participant_data_out}" \
-          participant -w "${participant_tmp}" \
-          --fs-license-file "${TMP_LOCAL}/tmp/freesurfer_license.txt"
+apptainer run "\${TMP_LOCAL}"/apptainer_image/"${PARTICIPANT_ID}"/fmriprep.sif \
+          "\${participant_data_in}" "\${participant_data_out}" \
+          participant -w "\${participant_tmp}" \
+          --fs-license-file "\${TMP_LOCAL}/tmp/freesurfer_license.txt"
 
 echo "******************** SUBJECT TMP TREE ****************************"
 tree \${participant_tmp}
