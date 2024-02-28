@@ -7,6 +7,12 @@ The goal of this document is to help you understand how to run fmriprep on the I
 - therefore 1 job = 1 participant
 - to minimize IO traffic, everything is handled locally
 
+Things that will be stored on each node temporarily:
+- single sub dataset
+- the apptainer sif
+- a shell script for submitting the job for the single participant
+- the derivatives
+
 Here is the basic outline of the "for loop" to submit the jobs
 Iterate over the participants in the NFS folder:
 - copy the container to the node

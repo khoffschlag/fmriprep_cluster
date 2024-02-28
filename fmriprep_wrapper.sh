@@ -12,9 +12,10 @@ CPUS_PER_TASK=15
 usage() {
       echo "-i      Input BIDS dataset"
       echo "-o      Derivatives dir (i.e., where to store the results)"
+      echo "-a      Path to the fmriprep.sif apptainer file"
       echo "-t      Where to store temporary files on the cluster, should be in TMPDIR/yourname or /local/work"
       echo "-f      link to the freesurfer license"
-      echo "-l      NFS directory that should be used to store the Slurm log files (+ Apptainer SIF file)"
+      echo "-l      NFS directory that should be used to store the slurm log files "
       echo "-m      Maximum amount of jobs that you want to have running at a time (default: '${MAX_JOBS}')"
       echo "-n      Slurm nice value. The higher the nice value, the lower the priority! (default: '${NICE}')"
       echo "-d      Minimum delay between submission of jobs in seconds (default: '${SUBMIT_DELAY}')"
@@ -27,6 +28,7 @@ while getopts "i:o:t:f:l:m:n:d:c:h" opt; do
   case "$opt" in
     i) INDIR="$OPTARG";;
     o) OUTDIR="$OPTARG";;
+    a) APPTAINER ="$OPTARG";;
     t) TMP_FMRIPREP="$OPTARG";;
     f) FREESURFER_LICENSE="$OPTARG";;
     l) LOG_PATH="$OPTARG";;
@@ -43,26 +45,13 @@ while getopts "i:o:t:f:l:m:n:d:c:h" opt; do
   esac
 done
 
-# write apptainer cache to TMP_FMRIPREP
-APPTAINER_CACHEDIR="${TMP_FMRIPREP}"/apptainer_cache
 # Every sub-dataset (containing only one subject) still needs a dataset_description.json
 dataset_description_path="${INDIR}/dataset_description.json"
 
 # Create directories
 mkdir -p "${LOG_PATH}"
 mkdir -p "${OUTDIR}"
-mkdir -p "${TMP_FMRIPREP}"/apptainer_cache/
 mkdir -p "${TMP_FMRIPREP}"/jobs_scripts/
-
-# pull docker image and convert to apptainer
-APPTAINER_CACHEDIR="${TMP_FMRIPREP}"/apptainer_cache/ \
- apptainer build "${TMP_FMRIPREP}"//fmriprep.sif docker://poldracklab/fmriprep:latest
-
-# copy to LOG path and remove
-cp "${TMP_FMRIPREP}"/fmriprep.sif "${LOG_PATH}"/fmriprep.sif
-rm -rf "${TMP_FMRIPREP}"
-
-
 
 # iterate over sub folders and
 for participant_folder in "${INDIR}"/sub-*; do
@@ -103,7 +92,7 @@ cp -v "${dataset_description_path}" "\${participant_data_in}"
 
 # copy the apptainer image
 mkdir -p "${TMP_FMRIPREP}"/apptainer_image/"${PARTICIPANT_ID}"/
-cp "${LOG_PATH}"/fmriprep.sif "${TMP_FMRIPREP}"/apptainer_image/"${PARTICIPANT_ID}"/fmriprep.sif
+cp "${APPTAINER}" "${TMP_FMRIPREP}"/apptainer_image/"${PARTICIPANT_ID}"/fmriprep.sif
 
 apptainer run "${TMP_FMRIPREP}"/apptainer_image/"${PARTICIPANT_ID}"/fmriprep.sif \
           "${participant_data_in}" "${participant_data_out}" \
