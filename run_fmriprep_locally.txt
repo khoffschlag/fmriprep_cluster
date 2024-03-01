@@ -20,5 +20,5 @@ export APPTAINER_CACHEDIR=${TMP_FMRIPREP}/apptainer_cache
 apptainer build ${TMP_FMRIPREP}/fmriprep.sif docker://poldracklab/fmriprep:latest
 
 # run apptainer from local image, adjusted tmp folder
-apptainer run $TMP_FMRIPREP/fmriprep.sif /home/renglert/data/ds002608/ /home/renglert/data/ds002608/derivatives participant -w TMP_FMRIPREP --participant-label 004
+apptainer run $TMP_FMRIPREP/fmriprep.sif /home/renglert/data/ds002608/ /home/renglert/data/ds002608/derivatives participant -w $TMP_FMRIPREP --participant-label 004
 
