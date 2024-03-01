@@ -75,10 +75,10 @@ TMP_LOCAL="/local/work/renglert/A01"
 echo "\${TMP_LOCAL}"
 
 # directory for single sub BIDS
-participant_data_in="\${TMP_LOCAL}/input/${PARTICIPANT_ID}/"
+participant_data_in="\${TMP_LOCAL}/input/${PARTICIPANT_ID}"
 echo "\${participant_data_in}"
 # dir for derivatives
-participant_data_out="\${TMP_LOCAL}/output/${PARTICIPANT_ID}/"
+participant_data_out="\${TMP_LOCAL}/output/${PARTICIPANT_ID}"
 # dir for temporary files
 participant_tmp="\${TMP_LOCAL}/tmp/${PARTICIPANT_ID}/"
 
@@ -95,28 +95,29 @@ cp -vr "${participant_folder}" "\${participant_data_in}"
 cp -v "${dataset_description_path}" "\${participant_data_in}"
 
 # create local copy of the freesurfer license
-cp -v "${FREESURFER_LICENSE}" "${TMP_LOCAL}/tmp/freesurfer_license.txt"
+cp -v "${FREESURFER_LICENSE}" "\${TMP_LOCAL}/tmp/freesurfer_license.txt"
 
 # copy the apptainer image
 mkdir -p "\${TMP_LOCAL}"/apptainer_image/"${PARTICIPANT_ID}"/
 cp "${CONTAINER}" "\${TMP_LOCAL}"/apptainer_image/"${PARTICIPANT_ID}"/fmriprep.sif
 
-apptainer run "\${TMP_LOCAL}"/apptainer_image/"${PARTICIPANT_ID}"/fmriprep.sif \
-          "\${participant_data_in}" "\${participant_data_out}" \
-          participant -w "\${participant_tmp}" \
-          --fs-license-file "\${TMP_LOCAL}/tmp/freesurfer_license.txt"
+apptainer exec -B "\${TMP_LOCAL}":"\${TMP_LOCAL}" --writable-tmpfs "\${TMP_LOCAL}"/apptainer_image/"${PARTICIPANT_ID}"/fmriprep.sif \
+	bash -c "fmriprep \${participant_data_in} \${participant_data_out} participant -w \${participant_tmp} --fs-license-file \${TMP_LOCAL}/tmp/freesurfer_license.txt"
 
-echo "******************** SUBJECT TMP TREE ****************************"
+echo "******************** PARTICIPANT INPUT TREE ****************************"
+tree \${participant_data_in}
+echo "***************************************************************"
+echo ""
+echo "******************** PARTICIPANT TMP TREE ****************************"
 tree \${participant_tmp}
 echo "***************************************************************"
 echo ""
-echo "******************** SUBJECT DATA OUT TREE ****************************"
+echo "******************** PARTICIPANT DATA OUT TREE ****************************"
 tree \${participant_data_out}
 echo "***********************************************************************"
 
 # Move results to the output directory
 cp -vr \${participant_data_out}/* ${OUTDIR}/
-
 
 # Remove (most) files from cluster
 rm -rf "\${participant_data_in}"
