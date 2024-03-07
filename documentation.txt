@@ -14,6 +14,28 @@ Things that will be stored on each node temporarily:
 - a shell script for submitting the job for the single participant
 - the derivatives
 
+The folder structure looks like this:
+/local/work/renglert/A01/
+└───sub-XXXXXXXXX
+│   └───input
+│       └───sub-XXXXXXXXX
+│           dataset_description.json
+│           └───sub-XXXXXXXXX
+│   └───output
+│       │   ...
+│   └───tmp
+│       │   ...
+└───sub-YYYYYYYYY
+│   └───input
+│       └───sub-YYYYYYYYY
+│   │       │   ...
+    .
+    .
+    .
+```
+This structure is chosen, so that parallel runs on the same node do not interfere with each other! The outer folder
+sub-XXXXXXXXX will be deleted once the preprocessing and the data migration to the nfs is complete.
+
 Here is the basic outline of the "for loop" to submit the jobs
 Iterate over the participants in the NFS folder:
 - copy the container to the node

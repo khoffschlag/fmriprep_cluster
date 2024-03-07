@@ -71,7 +71,7 @@ echo "*************************************************************"
 echo "Starting on \$(hostname) at \$(date +"%T")"
 echo "*************************************************************"
 
-TMP_LOCAL="/local/work/renglert/A01"
+TMP_LOCAL="/local/work/renglert/A01/${PARTICIPANT_ID}"
 echo "\${TMP_LOCAL}"
 
 # directory for single sub BIDS
