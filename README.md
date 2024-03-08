@@ -5,6 +5,7 @@ The goal of this document is to help you understand how to run fmriprep on the I
 - Everything should now be run through Slurm
 - the IO traffic, so communication between the nodes and the NFS, should be kept minimal
 - working directories should be in /local/work or $TMPDIR (i.e. /local/work/renglert/)
+- NOTHING should be stored in /tmp!
 - make sure to not overcrowd the nodes with residual data
 
 ### Overall structure
