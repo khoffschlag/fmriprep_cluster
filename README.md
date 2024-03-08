@@ -65,10 +65,12 @@ There are two types of log files currently created:
 - only cancel the job that manages the jobs, if the individual jobs die, they at least delete most of the data
 
 - when trying to access a specific node through slurm to clean up some data for example, you can run the following:
+```
 $ srun --time 01:00:00 -w c57 --pty bash -i
+```
 - this requests access to c57 for 1 hour, and it automatically starts an interactive terminal
 
-- take care of using variables! When using variables inside the for loop, make sure to use "\" so that it is not
+- take care of using variables! When using variables inside the for loop, make sure to use "\\" so that it is not
 immediately evaluated when starting the script, but only in-line
 
 - apptainer automatically binds $HOME and /scratch, this does not work on the cluster, that's why we have to manually
