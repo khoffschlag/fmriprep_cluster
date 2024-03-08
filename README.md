@@ -11,12 +11,13 @@ The goal of this document is to help you understand how to run fmriprep on the I
 - the fmriprep_wrapper.sh script manages the distribution of the participants to the nodes
 - another script that submits the fmriprep_wrapper.sh to slurm is recommended (see "run_fmriprep_A01.sh")
 - the preprocessing of all participants is parallelized only across participants, so 1 job = 1 participant
-- one node will be occupied for the fmriprep_wrapper.sh, to 9 jobs equals 8 participants simultaneously
+- one node will be occupied for the fmriprep_wrapper.sh, so 9 jobs equals 8 participants simultaneously
 - for each participant, the raw data and the container will be copied to the node, the outputs will be stored locally
 - after completion, the outputs (derivatives) will be copied to the nfs and the remaining data will be deleted
 
 ### Details
 **The basic outline of the "for loop" to submit the jobs:**
+
 Iterate over the participants in the NFS folder:
 - copy the container to the node
 - copy the target participant into a BIDS compatible format (incl. description.json)
