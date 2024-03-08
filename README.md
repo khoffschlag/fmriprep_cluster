@@ -27,6 +27,7 @@ Iterate over the participants in the NFS folder:
 - delete everything else (temp files, docker container, single-sub BIDS folder)
 
 The folder structure on the individual nodes will look like this:
+```
 /local/work/renglert/A01/
 └───sub-XXXXXXXXX
 │   └───input
