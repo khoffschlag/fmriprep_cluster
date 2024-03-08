@@ -75,3 +75,6 @@ immediately evaluated when starting the script, but only in-line
 
 - apptainer automatically binds $HOME and /scratch, this does not work on the cluster, that's why we have to manually
 bind the temporary working directory
+
+- when a job/participant crashes, the wrapper will just move to the next participant, so for now you will have to check
+manually whether everything was successful 
