@@ -1,20 +1,32 @@
 # Running fmriprep on the cluster
-The goal of this document is to help you understand how to run fmriprep on the IKIM cluster
+The goal of this document is to help you understand how to run fmriprep on the IKIM cluster!
 
-- Slurm will automatically assign nodes to the jobs you submit
-- one node will be occupied for the wrapper of the slurm jobs
-- it is important to limit the communication of the nodes to the NFS file storage
-- the preprocessing of all participants is parallelized only across participants
-- therefore 1 job = 1 participant
-- to minimize IO traffic, everything is handled locally
+### Important cluster considerations:
+- Everything should now be run through Slurm
+- the IO traffic, so communication between the nodes and the NFS, should be kept minimal
+- working directories should be in /local/work or $TMPDIR (i.e. /local/work/renglert/)
+- make sure to not overcrowd the nodes with residual data
 
-Things that will be stored on each node temporarily:
-- single sub dataset
-- the apptainer sif
-- a shell script for submitting the job for the single participant
-- the derivatives
+### Overall structure
+- the fmriprep_wrapper.sh script manages the distribution of the participants to the nodes
+- another script that submits the fmriprep_wrapper.sh to slurm is recommended (see "run_fmriprep_A01.sh")
+- the preprocessing of all participants is parallelized only across participants, so 1 job = 1 participant
+- one node will be occupied for the fmriprep_wrapper.sh, to 9 jobs equals 8 participants simultaneously
+- for each participant, the raw data and the container will be copied to the node, the outputs will be stored locally
+- after completion, the outputs (derivatives) will be copied to the nfs and the remaining data will be deleted
 
-The folder structure looks like this:
+### Details
+**The basic outline of the "for loop" to submit the jobs:**
+Iterate over the participants in the NFS folder:
+- copy the container to the node
+- copy the target participant into a BIDS compatible format (incl. description.json)
+- run the actual analysis, and
+    - write the temp files locally
+    - output the derivatives locally
+- when the analysis is complete, copy the derivatives back to the NFS
+- delete everything else (temp files, docker container, single-sub BIDS folder)
+
+The folder structure on the individual nodes will look like this:
 /local/work/renglert/A01/
 └───sub-XXXXXXXXX
 │   └───input
@@ -36,18 +48,8 @@ The folder structure looks like this:
 This structure is chosen, so that parallel runs on the same node do not interfere with each other! The outer folder
 sub-XXXXXXXXX will be deleted once the preprocessing and the data migration to the nfs is complete.
 
-Here is the basic outline of the "for loop" to submit the jobs
-Iterate over the participants in the NFS folder:
-- copy the container to the node
-- copy the target participant into a BIDS compatible format (incl. description.json)
-- run the actual analysis, and
-    - write the temp files locally
-    - output the derivatives locally
-- when the analysis is complete, copy the derivatives back to the NFS
-- delete everything else (temp files, docker container, single-sub BIDS folder)
-
-To handle an upper limit of jobs, so i.e. only 8 simultaneously, we can submit the jobs with a while loop in the
-participant level for loop. For this we just check the amount of jobs our USER has currently running, compare that
+To handle an upper limit of jobs, so i.e. only 8 simultaneously, we submit the jobs with a while loop in the
+participant level for loop. For this we just check the amount of jobs our $USER has currently running, compare that
 to the MAX JOBS and either submit a new job (=participant), or we just wait a specific amount and check again, until
 all participants are done.
 
@@ -55,12 +57,16 @@ There are two types of log files currently created:
 - one automatically named, next to the slurm script which contains the logs of the wrapper that distributes the jobs
 - logs for each participant, stored in the provided folder. This holds the logs on the actual analysis pipeline
 
+
+### Things to note:
 - only cancel the job that manages the jobs, if the individual jobs die, they at least delete most of the data
-- take care of using variables! When using variables inside the for loop, make sure to use "\" so that it is not
-immediately evaluated when starting the script, but only in-line
+
 - when trying to access a specific node through slurm to clean up some data for example, you can run the following:
 $ srun --time 01:00:00 -w c57 --pty bash -i
 - this requests access to c57 for 1 hour, and it automatically starts an interactive terminal
 
-- apptainer automatically binds $HOME and /scratch, this does not work on the cluster, thats why we have to manually
-mount the temporary working directory
+- take care of using variables! When using variables inside the for loop, make sure to use "\" so that it is not
+immediately evaluated when starting the script, but only in-line
+
+- apptainer automatically binds $HOME and /scratch, this does not work on the cluster, that's why we have to manually
+bind the temporary working directory
