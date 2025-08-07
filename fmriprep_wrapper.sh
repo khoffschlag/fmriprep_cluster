@@ -91,8 +91,8 @@ rm -rf "\${participant_tmp}"
 mkdir -p "\${participant_tmp}"
 
 # copy the participant data and the description.json from the NFS to the node
-cp -vr "${participant_folder}" "\${participant_data_in}"
-cp -v "${dataset_description_path}" "\${participant_data_in}"
+rsync -a --copy-links "${participant_folder}" "\${participant_data_in}"
+rsync -a --copy-links "${dataset_description_path}" "\${participant_data_in}"
 
 # create local copy of the freesurfer license
 cp -v "${FREESURFER_LICENSE}" "\${TMP_LOCAL}/tmp/freesurfer_license.txt"
