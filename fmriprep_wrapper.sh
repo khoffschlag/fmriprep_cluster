@@ -102,7 +102,7 @@ mkdir -p "\${TMP_LOCAL}"/apptainer_image/"${PARTICIPANT_ID}"/
 cp "${CONTAINER}" "\${TMP_LOCAL}"/apptainer_image/"${PARTICIPANT_ID}"/fmriprep.sif
 
 apptainer exec -B "\${TMP_LOCAL}":"\${TMP_LOCAL}" --writable-tmpfs "\${TMP_LOCAL}"/apptainer_image/"${PARTICIPANT_ID}"/fmriprep.sif \
-	bash -c "fmriprep \${participant_data_in} \${participant_data_out} participant -w \${participant_tmp} --fs-license-file \${TMP_LOCAL}/tmp/freesurfer_license.txt"
+	bash -c "fmriprep \${participant_data_in} \${participant_data_out} participant -w \${participant_tmp} --output-spaces T1w MNI152NLin2009cAsym:res-1 --fs-license-file \${TMP_LOCAL}/tmp/freesurfer_license.txt"
 
 echo "******************** PARTICIPANT INPUT TREE ****************************"
 tree \${participant_data_in}
