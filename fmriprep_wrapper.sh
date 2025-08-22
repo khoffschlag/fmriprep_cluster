@@ -63,7 +63,7 @@ for participant_folder in ${INDIR}/sub-*; do
 #SBATCH --job-name=${PARTICIPANT_ID}
 #SBATCH --output="${LOG_PATH}/${PARTICIPANT_ID}.out"
 #SBATCH --error="${LOG_PATH}/${PARTICIPANT_ID}.out"
-#SBATCH --time=48:00:00
+#SBATCH --time=96:00:00
 #SBATCH --nice=${NICE}
 #SBATCH --cpus-per-task ${CPUS_PER_TASK}
 
