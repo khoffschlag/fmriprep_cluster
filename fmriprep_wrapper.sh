@@ -66,6 +66,7 @@ for participant_folder in ${INDIR}/sub-*; do
 #SBATCH --time=96:00:00
 #SBATCH --nice=${NICE}
 #SBATCH --cpus-per-task ${CPUS_PER_TASK}
+#SBATCH --mem=64G
 
 echo "*************************************************************"
 echo "Starting on \$(hostname) at \$(date +"%T")"
