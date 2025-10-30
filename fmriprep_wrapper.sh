@@ -103,7 +103,7 @@ mkdir -p "\${TMP_LOCAL}"/apptainer_image/"${PARTICIPANT_ID}"/
 cp "${CONTAINER}" "\${TMP_LOCAL}"/apptainer_image/"${PARTICIPANT_ID}"/fmriprep.sif
 
 apptainer exec -B "\${TMP_LOCAL}":"\${TMP_LOCAL}" "\${TMP_LOCAL}"/apptainer_image/"${PARTICIPANT_ID}"/fmriprep.sif \
-	bash -c "fmriprep \${participant_data_in} \${participant_data_out} participant -w \${participant_tmp} --nprocs 8 --mem 80000 --omp-nthreads 4 -t rest --output-spaces func MNI152NLin2009cAsym:res-2 --fs-license-file \${TMP_LOCAL}/tmp/freesurfer_license.txt"
+bash -c "fmriprep \${participant_data_in} \${participant_data_out} participant -w \${participant_tmp} --nprocs 8 --mem 80000 --omp-nthreads 4 -t rest --output-spaces func MNI152NLin2009cAsym:res-2 --fs-license-file \${TMP_LOCAL}/tmp/freesurfer_license.txt"
 
 echo "******************** PARTICIPANT INPUT TREE ****************************"
 tree \${participant_data_in}
