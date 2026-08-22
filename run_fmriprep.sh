@@ -6,7 +6,7 @@ USERNAME=$(whoami)
 # Adjustable paths - modify these as needed
 DATASET_PATH="/groups/pni/${USERNAME}/Attractor/INDI_Lite_BIDS/"  # Path to input dataset
 CONTAINER_PATH="/groups/pni/containers/fmriprep.sif"  # Path to apptainer fMRIPrep image
-LICENSE_PATH="./license.txt"  # Path to fMRIPrep license
+LICENSE_PATH="./license.txt"  # Path to FreeSurfer license
 LOG_DIR="./logs/"  # Path to directory where logs should be saved to
 WORK_DIR="/local/work/${USERNAME}_fmriprep_dir/"  # Specify where on the cluster nodes the fMRIPrep working dir should be placed
 
@@ -25,8 +25,9 @@ fi
 
 # Check if license file exists
 if [ ! -f "${LICENSE_PATH}" ]; then
-    echo "Error: License file not found at ${LICENSE_PATH}"
-    echo "Please ensure license.txt is in the current directory."
+    echo "Error: FreeSurfer license file not found at ${LICENSE_PATH}"
+    echo "Please ensure license.txt is in the specified directory."
+    echo "If you don't have a FreeSurfer license yet, register at https://surfer.nmr.mgh.harvard.edu/registration.html to get one via email."
     exit 1
 fi
 
