@@ -1,6 +1,44 @@
 # Running fmriprep on the cluster
 The goal of this document is to help you understand how to run fmriprep on the IKIM cluster!
 
+### How to run it
+
+**Prerequisites:**
+
+1. **FreeSurfer license** - If you don't have one, register at https://surfer.nmr.mgh.harvard.edu/registration.html and save the license file as `license.txt` in the same directory as the scripts
+
+2. **fMRIPrep container** - If the container doesn't already exist, you can build it using the provided script:
+   ```bash
+   # Edit the build_fmriprep.sh script first to adjust paths if needed
+   # Then submit the build job:
+   sbatch build_fmriprep.sh
+   ```
+   This will build the latest fMRIPrep container and place it in the specified containers directory.
+
+3. **BIDS dataset** - Your input dataset should be in BIDS format
+
+**Steps:**
+
+1. **Edit the submission script** (`run_fmriprep.sh`):
+   - Update `DATASET_PATH` to point to your BIDS dataset
+   - Adjust `CONTAINER_PATH`, `LICENSE_PATH`, `LOG_DIR`, and `WORK_DIR` if needed
+   - Set `MAX_JOBS` to control how many participants run simultaneously
+
+2. **Make the scripts executable** (if not already):
+   ```bash
+   chmod +x run_fmriprep.sh fmriprep_wrapper.sh build_fmriprep.sh
+   ```
+
+3. **Run the submission script**:
+   ```bash
+   ./run_fmriprep.sh
+   ```
+
+4. **Monitor your jobs**:
+   ```bash
+   squeue -u $USER
+   ```
+
 ### Important cluster considerations:
 - Everything should now be run through Slurm
 - the IO traffic, so communication between the nodes and the NFS, should be kept minimal
