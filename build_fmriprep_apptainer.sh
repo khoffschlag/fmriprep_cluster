@@ -1,5 +1,6 @@
 #!/bin/bash
 #SBATCH --job-name=build_fmriprep
+#SBATCH --partition=cpu_nodes
 #SBATCH --time=5:00:00
 #SBATCH --nice=5
 #SBATCH --cpus-per-task=1
