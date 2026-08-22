@@ -1,21 +1,26 @@
 #!/bin/bash
-
-sbatch <<EOF
-#!/bin/bash
 #SBATCH --job-name=build_fmriprep
-#SBATCH --time=2:00:00
+#SBATCH --time=5:00:00
 #SBATCH --nice=5
-#SBATCH --output="/groups/pni/renglert/logs/build_fmriprep.out"
 #SBATCH --cpus-per-task=1
 
-echo "building container"
-apptainer build ${TMPDIR}/renglert/fmriprep.sif docker://poldracklab/fmriprep:latest
+# Get username automatically
+USERNAME=$(whoami)
 
-echo "copying container"
-cp ${TMPDIR}/renglert/fmriprep.sif /groups/pni/containers/fmriprep.sif
+# Set adjustable paths
+WORK_DIR="/local/work/${USERNAME}_fmriprep_build"
+CONTAINER_DEST="/groups/pni/containers"  # If you are not part of the PNI group, then you need to adjust
 
-echo "cleaning the node"
-rm ${TMPDIR}/renglert/fmriprep.sif
+# Create working directory
+mkdir -p ${WORK_DIR}
 
-echo "done"
-EOF
+echo "Building container"
+apptainer build ${WORK_DIR}/fmriprep.sif docker://poldracklab/fmriprep:latest
+
+echo "Copying container"
+cp ${WORK_DIR}/fmriprep.sif ${CONTAINER_DEST}/fmriprep.sif
+
+echo "Cleaning the node"
+rm ${WORK_DIR}/fmriprep.sif
+
+echo "Done"
