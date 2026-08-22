@@ -10,8 +10,8 @@ LICENSE_PATH="./license.txt"  # Path to FreeSurfer license
 LOG_DIR="./logs/"  # Path to directory where logs should be saved to
 WORK_DIR="/local/work/${USERNAME}_fmriprep_dir/"  # Specify where on the cluster nodes the fMRIPrep working dir should be placed
 
-# Set memory
-MEMORY=64
+# Set maximum number of concurrent jobs
+MAX_JOBS=21
 
 # Set output directory (adjustable)
 OUTPUT_DIR="${DATASET_PATH}/derivatives/fmriprep_desc-AnatAndFuncAndMNI152NLin2009cAsym2mm_all_tasks/"
@@ -46,7 +46,7 @@ sbatch ./fmriprep_wrapper.sh \
 -i ${DATASET_PATH} \
 -o ${OUTPUT_DIR} \
 -a ${CONTAINER_PATH} \
--m ${MEMORY} \
+-m ${MAX_JOBS} \
 -t ${WORK_DIR} \
 -f ${LICENSE_PATH} \
 -l ${LOG_DIR}
