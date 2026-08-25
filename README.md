@@ -22,6 +22,7 @@ The goal of this document is to help you understand how to run fmriprep on the I
 1. **Edit the submission script** (`run_fmriprep.sh`):
    - Update `DATASET_PATH` to point to your BIDS dataset
    - Adjust `CONTAINER_PATH`, `LICENSE_PATH`, `LOG_DIR`, and `WORK_DIR` if needed
+   - Make sure `WORK_DIR` is placed in /local
    - Set `MAX_JOBS` to control how many participants run simultaneously
 
 2. **Make the scripts executable** (if not already):

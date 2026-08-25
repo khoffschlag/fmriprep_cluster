@@ -38,6 +38,15 @@ if [ ! -d "${DATASET_PATH}" ]; then
     exit 1
 fi
 
+echo "Work directory set to: ${WORK_DIR}"
+echo "Verifying work directory is in /local..."
+if [[ "${WORK_DIR}" == /local/* ]]; then
+    echo "Work directory is correctly in /local"
+else
+    echo "Error: Work directory is NOT in /local"
+    exit 1
+fi
+
 # Create necessary directories if they don't exist
 mkdir -p ${LOG_DIR}
 

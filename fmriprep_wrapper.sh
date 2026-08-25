@@ -17,7 +17,7 @@ usage() {
       echo "-i      Input BIDS dataset"
       echo "-o      Derivatives dir (i.e., where to store the results)"
       echo "-a      Path to the fmriprep.sif apptainer file"
-      echo "-t      Where to store temporary files on the cluster, should be in TMPDIR/yourname or /local/work"
+      echo "-t      Where to store temporary files on the cluster, should be in /local/work"
       echo "-f      link to the freesurfer license"
       echo "-l      NFS directory that should be used to store the slurm log files "
       echo "-m      Maximum amount of jobs that you want to have running at a time (default: '${MAX_JOBS}')"
@@ -48,6 +48,15 @@ while getopts "i:o:a:t:f:l:m:n:d:c:h" opt; do
     :) echo "Option -$OPTARG requires an argument." >&2; usage; exit 1;;
   esac
 done
+
+echo "Verifying temporary directory is in /local..."
+if [[ "${TMP_FMRIPREP}" != /local/* ]]; then
+    echo "Error: Temporary directory must be in /local"
+    echo "Current value: ${TMP_FMRIPREP}"
+    echo "Please specify a path starting with /local/"
+    exit 1
+fi
+
 
 # Every sub-dataset (containing only one subject) still needs a dataset_description.json
 dataset_description_path="${INDIR}/dataset_description.json"
