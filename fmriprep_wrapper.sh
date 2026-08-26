@@ -8,7 +8,7 @@
 # Set default values
 MAX_JOBS=21
 NICE=5
-SUBMIT_DELAY=72
+SUBMIT_DELAY=90  # DO NOT DECREASE - only increase if wanted
 CPUS_PER_TASK=15
 
 
