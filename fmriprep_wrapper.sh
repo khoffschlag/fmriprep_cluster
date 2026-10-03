@@ -10,6 +10,7 @@ MAX_JOBS=21
 NICE=5
 SUBMIT_DELAY=90  # DO NOT DECREASE - only increase if wanted
 CPUS_PER_TASK=15
+REQUIRED_VERSION="25.2.6"
 
 
 # this is called with the -h help function
@@ -57,6 +58,17 @@ if [[ "${TMP_FMRIPREP}" != /local/* ]]; then
     exit 1
 fi
 
+# Check the container exists and is the required fMRIPrep version before submitting anything
+if [[ ! -f "${CONTAINER}" ]]; then
+    echo "Error: container not found: ${CONTAINER}"
+    exit 1
+fi
+CONTAINER_VERSION=$(apptainer exec --cleanenv "${CONTAINER}" fmriprep --version 2>&1)
+echo "Container reports: ${CONTAINER_VERSION}"
+if [[ "${CONTAINER_VERSION}" != *"${REQUIRED_VERSION}"* ]]; then
+    echo "Error: expected fMRIPrep ${REQUIRED_VERSION}, got: ${CONTAINER_VERSION}"
+    exit 1
+fi
 
 # Every sub-dataset (containing only one subject) still needs a dataset_description.json
 dataset_description_path="${INDIR}/dataset_description.json"
@@ -115,8 +127,25 @@ cp -v "${FREESURFER_LICENSE}" "\${TMP_LOCAL}/tmp/freesurfer_license.txt"
 mkdir -p "\${TMP_LOCAL}"/apptainer_image/"${PARTICIPANT_ID}"/
 cp "${CONTAINER}" "\${TMP_LOCAL}"/apptainer_image/"${PARTICIPANT_ID}"/fmriprep.sif
 
-apptainer exec -B "\${TMP_LOCAL}":"\${TMP_LOCAL}" "\${TMP_LOCAL}"/apptainer_image/"${PARTICIPANT_ID}"/fmriprep.sif \
-bash -c "fmriprep \${participant_data_in} \${participant_data_out} participant -w \${participant_tmp} --nprocs 8 --mem 80000 --omp-nthreads 4 --output-spaces anat func MNI152NLin2009cAsym:res-2 --fs-license-file \${TMP_LOCAL}/tmp/freesurfer_license.txt"
+# NEW: verify the fMRIPrep version on the compute node as well
+FMRIPREP_VERSION=\$(apptainer exec --cleanenv "\${SIF}" fmriprep --version 2>&1)
+echo "fMRIPrep version: \${FMRIPREP_VERSION}"
+if [[ "\${FMRIPREP_VERSION}" != *"${REQUIRED_VERSION}"* ]]; then
+    echo "ERROR: expected fMRIPrep ${REQUIRED_VERSION}, aborting."
+    rm -rf "\${TMP_LOCAL}"
+    exit 1
+fi
+
+apptainer exec --cleanenv -B "\${TMP_LOCAL}":"\${TMP_LOCAL}" "\${SIF}" \\
+    fmriprep "\${participant_data_in}" "\${participant_data_out}" participant \\
+    -w "\${participant_tmp}" \\
+    --output-spaces anat func MNI152NLin2009cAsym:res-2 \\
+    --nthreads ${CPUS_PER_TASK} \\
+    --omp-nthreads 4 \\
+    --mem_mb 80000 \\
+    --fs-license-file "\${TMP_LOCAL}/tmp/freesurfer_license.txt"
+FMRIPREP_EXIT=\$?
+echo "fMRIPrep exit code: \${FMRIPREP_EXIT}"
 
 echo "******************** PARTICIPANT INPUT TREE ****************************"
 tree \${participant_data_in}
