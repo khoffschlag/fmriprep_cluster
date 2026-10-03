@@ -9,7 +9,7 @@ USERNAME=$(whoami)
 # Adjustable paths - modify these as needed
 DATASET_PATH="/groups/pni/${USERNAME}/Attractor/INDI_Lite_BIDS"  # Path to input dataset (no trailing slash)
 CONTAINER_PATH="/groups/pni/containers/fmriprep-25.2.6.sif"
-WRAPPER_SCRIPT="./fmriprep_wrapper-2.sh"                  # The per-subject submission wrapper
+WRAPPER_SCRIPT="./fmriprep_wrapper.sh"                  # The per-subject submission wrapper
 LICENSE_PATH="./license.txt"                                    # Path to FreeSurfer license
 LOG_DIR="./logs_fmriprep-25.2.6/"                          # Separate logs from earlier fMRIPrep runs
 WORK_DIR="/local/work/${USERNAME}_fmriprep-25.2.6/"        # Working dir on the cluster nodes (must be in /local)
