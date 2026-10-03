@@ -1,25 +1,56 @@
 #!/bin/bash
+# Launcher for fMRIPrep 20.5.6 pipeline
+
+set -euo pipefail
 
 # Get username automatically
 USERNAME=$(whoami)
 
 # Adjustable paths - modify these as needed
-DATASET_PATH="/groups/pni/${USERNAME}/Attractor/INDI_Lite_BIDS/"  # Path to input dataset
-CONTAINER_PATH="/groups/pni/containers/fmriprep.sif"  # Path to apptainer fMRIPrep image
-LICENSE_PATH="./license.txt"  # Path to FreeSurfer license
-LOG_DIR="./logs/"  # Path to directory where logs should be saved to
-WORK_DIR="/local/work/${USERNAME}_fmriprep_dir/"  # Specify where on the cluster nodes the fMRIPrep working dir should be placed
+DATASET_PATH="/groups/pni/${USERNAME}/Attractor/INDI_Lite_BIDS"  # Path to input dataset (no trailing slash)
+CONTAINER_PATH="/groups/pni/containers/fmriprep-20.5.6.sif"
+WRAPPER_SCRIPT="./fmriprep_wrapper.sh"                  # The per-subject submission wrapper
+LICENSE_PATH="./license.txt"                                    # Path to FreeSurfer license
+LOG_DIR="./logs_fmriprep-20.5.6/"                          # Separate logs from earlier fMRIPrep runs
+WORK_DIR="/local/work/${USERNAME}_fmriprep-20.5.6/"        # Working dir on the cluster nodes (must be in /local)
 
 # Set maximum number of concurrent jobs
-MAX_JOBS=21
+MAX_JOBS=69
 
-# Set output directory (adjustable)
-OUTPUT_DIR="${DATASET_PATH}/derivatives/fmriprep_desc-AnatAndFuncAndMNI152NLin2009cAsym2mm_all_tasks/"
+# Set output directory (NEW directory - never mix with derivatives from other fMRIPrep versions)
+OUTPUT_DIR="${DATASET_PATH}/derivatives/fmriprep-20.5.6_allTasks/"
+
+# Set to 1 only if you deliberately want to continue into an existing, non-empty output directory
+ALLOW_EXISTING_OUTPUT=0
+
+# Resolve relative paths to absolute ones, because the generated job scripts
+# run later on other nodes and must not depend on the current working directory
+LICENSE_PATH=$(realpath -m "${LICENSE_PATH}")
+LOG_DIR=$(realpath -m "${LOG_DIR}")/
+WRAPPER_SCRIPT=$(realpath -m "${WRAPPER_SCRIPT}")
 
 # Check if container image exists
 if [ ! -f "${CONTAINER_PATH}" ]; then
     echo "Error: fMRIPrep container image not found at ${CONTAINER_PATH}"
     echo "Please check the path or build the container first."
+    exit 1
+fi
+
+# Verify the container checksum, if the build script recorded one
+if [ -f "${CONTAINER_PATH}.sha256" ]; then
+    echo "Verifying container checksum..."
+    if ! sha256sum --check --status "${CONTAINER_PATH}.sha256"; then
+        echo "Error: checksum of ${CONTAINER_PATH} does not match ${CONTAINER_PATH}.sha256"
+        exit 1
+    fi
+    echo "Checksum OK"
+else
+    echo "Warning: no checksum file found at ${CONTAINER_PATH}.sha256 - skipping checksum verification"
+fi
+
+# Check the wrapper script exists
+if [ ! -f "${WRAPPER_SCRIPT}" ]; then
+    echo "Error: wrapper script not found at ${WRAPPER_SCRIPT}"
     exit 1
 fi
 
@@ -38,6 +69,16 @@ if [ ! -d "${DATASET_PATH}" ]; then
     exit 1
 fi
 
+# Protect against mixing with existing derivatives
+if [ -d "${OUTPUT_DIR}" ] && [ -n "$(ls -A "${OUTPUT_DIR}" 2>/dev/null)" ]; then
+    if [ "${ALLOW_EXISTING_OUTPUT}" -ne 1 ]; then
+        echo "Error: output directory ${OUTPUT_DIR} already exists and is not empty."
+        echo "Use a new directory, or set ALLOW_EXISTING_OUTPUT=1 if this is intentional (e.g. rerunning failed subjects)."
+        exit 1
+    fi
+    echo "Warning: writing into existing output directory ${OUTPUT_DIR}"
+fi
+
 echo "Work directory set to: ${WORK_DIR}"
 echo "Verifying work directory is in /local..."
 if [[ "${WORK_DIR}" == /local/* ]]; then
@@ -48,14 +89,20 @@ else
 fi
 
 # Create necessary directories if they don't exist
-mkdir -p ${LOG_DIR}
+mkdir -p "${LOG_DIR}"
+
+echo "Submitting wrapper with:"
+echo "  dataset:   ${DATASET_PATH}"
+echo "  output:    ${OUTPUT_DIR}"
+echo "  container: ${CONTAINER_PATH}"
+echo "  logs:      ${LOG_DIR}"
 
 # Submit the job
-sbatch ./fmriprep_wrapper.sh \
--i ${DATASET_PATH} \
--o ${OUTPUT_DIR} \
--a ${CONTAINER_PATH} \
--m ${MAX_JOBS} \
--t ${WORK_DIR} \
--f ${LICENSE_PATH} \
--l ${LOG_DIR}
+sbatch "${WRAPPER_SCRIPT}" \
+    -i "${DATASET_PATH}" \
+    -o "${OUTPUT_DIR}" \
+    -a "${CONTAINER_PATH}" \
+    -m "${MAX_JOBS}" \
+    -t "${WORK_DIR}" \
+    -f "${LICENSE_PATH}" \
+    -l "${LOG_DIR}"
