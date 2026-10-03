@@ -1,5 +1,5 @@
 #!/bin/bash
-# Launcher for fMRIPrep 20.5.6 pipeline
+# Launcher for fMRIPrep 25.2.6 pipeline
 
 set -euo pipefail
 
@@ -8,17 +8,17 @@ USERNAME=$(whoami)
 
 # Adjustable paths - modify these as needed
 DATASET_PATH="/groups/pni/${USERNAME}/Attractor/INDI_Lite_BIDS"  # Path to input dataset (no trailing slash)
-CONTAINER_PATH="/groups/pni/containers/fmriprep-20.5.6.sif"
-WRAPPER_SCRIPT="./fmriprep_wrapper.sh"                  # The per-subject submission wrapper
+CONTAINER_PATH="/groups/pni/containers/fmriprep-25.2.6.sif"
+WRAPPER_SCRIPT="./fmriprep_wrapper-2.sh"                  # The per-subject submission wrapper
 LICENSE_PATH="./license.txt"                                    # Path to FreeSurfer license
-LOG_DIR="./logs_fmriprep-20.5.6/"                          # Separate logs from earlier fMRIPrep runs
-WORK_DIR="/local/work/${USERNAME}_fmriprep-20.5.6/"        # Working dir on the cluster nodes (must be in /local)
+LOG_DIR="./logs_fmriprep-25.2.6/"                          # Separate logs from earlier fMRIPrep runs
+WORK_DIR="/local/work/${USERNAME}_fmriprep-25.2.6/"        # Working dir on the cluster nodes (must be in /local)
 
 # Set maximum number of concurrent jobs
 MAX_JOBS=69
 
 # Set output directory (NEW directory - never mix with derivatives from other fMRIPrep versions)
-OUTPUT_DIR="${DATASET_PATH}/derivatives/fmriprep-20.5.6_allTasks/"
+OUTPUT_DIR="${DATASET_PATH}/derivatives/fmriprep-25.2.6_allTasks/"
 
 # Set to 1 only if you deliberately want to continue into an existing, non-empty output directory
 ALLOW_EXISTING_OUTPUT=0
