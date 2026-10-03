@@ -42,7 +42,7 @@ while getopts "i:o:a:t:f:l:m:n:d:c:h" opt; do
     d) SUBMIT_DELAY="$OPTARG";;
     c) CPUS_PER_TASK="$OPTARG";;
 
-    h) usage;;
+    h) usage; exit 0;;
     # catch invalid args
     \?) echo "Invalid option: -$OPTARG" >&2; usage; exit 1;;
     # catch missing args
@@ -124,8 +124,9 @@ rsync -a --copy-links "${dataset_description_path}" "\${participant_data_in}"
 cp -v "${FREESURFER_LICENSE}" "\${TMP_LOCAL}/tmp/freesurfer_license.txt"
 
 # copy the apptainer image
-mkdir -p "\${TMP_LOCAL}"/apptainer_image/"${PARTICIPANT_ID}"/
-cp "${CONTAINER}" "\${TMP_LOCAL}"/apptainer_image/"${PARTICIPANT_ID}"/fmriprep.sif
+SIF="\${TMP_LOCAL}/apptainer_image/${PARTICIPANT_ID}/fmriprep.sif"
+mkdir -p "\$(dirname "\${SIF}")"
+cp "${CONTAINER}" "\${SIF}"
 
 # NEW: verify the fMRIPrep version on the compute node as well
 FMRIPREP_VERSION=\$(apptainer exec --cleanenv "\${SIF}" fmriprep --version 2>&1)
@@ -160,7 +161,7 @@ tree \${participant_data_out}
 echo "***********************************************************************"
 
 # Move results to the output directory
-cp -vr \${participant_data_out}/* ${OUTDIR}/
+cp -vr \${participant_data_out}/* "${OUTDIR}/"
 
 # Remove (most) files from cluster
 rm -rf "\${participant_data_in}"
@@ -172,6 +173,8 @@ rm -rf "\${TMP_LOCAL}"
 echo "*************************************************************"
 echo "Ended on \$(hostname) at \$(date +"%T")"
 echo "*************************************************************"
+
+exit \${FMRIPREP_EXIT}
 
 EOF
 
@@ -193,7 +196,7 @@ EOF
 done
 
 # clean the tmp folder on the wrapper node
-rm -rf "\${TMP_FMRIPREP}"
+rm -rf "${TMP_FMRIPREP}/job_scripts"
 
 echo "--------------------------------------------------------------------"
 echo "Last job script was submitted..."
