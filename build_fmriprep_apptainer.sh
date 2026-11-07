@@ -1,25 +1,25 @@
 #!/bin/bash
-#SBATCH --job-name=build_fmriprep_25.2.6
+#SBATCH --job-name=build_fmriprep_25.2.7
 #SBATCH --partition=cpu_nodes
 #SBATCH --time=5:00:00
 #SBATCH --nice=5
 #SBATCH --cpus-per-task=1
 #SBATCH --mem=8G
 
-# Builds a PINNED fMRIPrep 25.2.6 container,
+# Builds a PINNED fMRIPrep 25.2.7 container,
 # stored under a versioned file name so it never overwrites the group's existing fmriprep.sif.
 
 set -euo pipefail
 
-IMAGE="docker://nipreps/fmriprep:25.2.6"
+IMAGE="docker://nipreps/fmriprep:25.2.7"
 
 # Get username automatically
 USERNAME=$(whoami)
 
 # Set adjustable paths
-WORK_DIR="/local/work/${USERNAME}_fmriprep_build_25.2.6"
+WORK_DIR="/local/work/${USERNAME}_fmriprep_build_25.2.7"
 CONTAINER_DEST="/groups/pni/containers"  # If you are not part of the PNI group, then you need to adjust
-SIF_NAME="fmriprep-25.2.6.sif"
+SIF_NAME="fmriprep-25.2.7.sif"
 
 mkdir -p "${WORK_DIR}"
 
