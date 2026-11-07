@@ -155,7 +155,7 @@ rm -rf "\${participant_data_out}"
 rm -rf "\${participant_tmp}"
 rm -rf "\${TMP_LOCAL}"
 
-echo ""****** Ended on \$(hostname) at \$(date +"%T") "******"
+echo "****** Ended on \$(hostname) at \$(date +"%T") "******"
 
 exit \${FMRIPREP_EXIT}
 
@@ -181,6 +181,4 @@ done
 # clean the tmp folder on the wrapper node
 rm -rf "${TMP_FMRIPREP}/job_scripts"
 
-echo "--------------------------------------------------------------------"
-echo "Last job script was submitted..."
-echo "--------------------------------------------------------------------"
+echo "****** Last job script was submitted... ******"
