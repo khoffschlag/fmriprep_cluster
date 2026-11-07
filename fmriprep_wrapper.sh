@@ -93,9 +93,7 @@ for participant_folder in ${INDIR}/sub-*; do
 #SBATCH --cpus-per-task ${CPUS_PER_TASK}
 #SBATCH --mem=90G
 
-echo "*************************************************************"
-echo "Starting on \$(hostname) at \$(date +"%T")"
-echo "*************************************************************"
+echo "****** Starting on \$(hostname) at \$(date +"%T") ******"
 
 TMP_LOCAL="/local/work/$(whoami)/A01/${PARTICIPANT_ID}"
 echo "\${TMP_LOCAL}"
@@ -121,7 +119,7 @@ rsync -a --copy-links "${participant_folder}" "\${participant_data_in}"
 rsync -a --copy-links "${dataset_description_path}" "\${participant_data_in}"
 
 # create local copy of the freesurfer license
-cp -v "${FREESURFER_LICENSE}" "\${TMP_LOCAL}/tmp/freesurfer_license.txt"
+cp "${FREESURFER_LICENSE}" "\${TMP_LOCAL}/tmp/freesurfer_license.txt"
 
 # copy the apptainer image
 SIF="\${TMP_LOCAL}/apptainer_image/${PARTICIPANT_ID}/fmriprep.sif"
@@ -148,20 +146,8 @@ apptainer exec --cleanenv -B "\${TMP_LOCAL}":"\${TMP_LOCAL}" "\${SIF}" \\
 FMRIPREP_EXIT=\$?
 echo "fMRIPrep exit code: \${FMRIPREP_EXIT}"
 
-echo "******************** PARTICIPANT INPUT TREE ****************************"
-tree \${participant_data_in}
-echo "***************************************************************"
-echo ""
-echo "******************** PARTICIPANT TMP TREE ****************************"
-tree \${participant_tmp}
-echo "***************************************************************"
-echo ""
-echo "******************** PARTICIPANT DATA OUT TREE ****************************"
-tree \${participant_data_out}
-echo "***********************************************************************"
-
 # Move results to the output directory
-cp -vr \${participant_data_out}/* "${OUTDIR}/"
+cp -r \${participant_data_out}/* "${OUTDIR}/"
 
 # Remove (most) files from cluster
 rm -rf "\${participant_data_in}"
@@ -169,10 +155,7 @@ rm -rf "\${participant_data_out}"
 rm -rf "\${participant_tmp}"
 rm -rf "\${TMP_LOCAL}"
 
-
-echo "*************************************************************"
-echo "Ended on \$(hostname) at \$(date +"%T")"
-echo "*************************************************************"
+echo ""****** Ended on \$(hostname) at \$(date +"%T") "******"
 
 exit \${FMRIPREP_EXIT}
 
