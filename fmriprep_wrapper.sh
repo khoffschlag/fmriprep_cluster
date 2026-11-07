@@ -95,7 +95,7 @@ for participant_folder in ${INDIR}/sub-*; do
 
 echo "****** Starting on \$(hostname) at \$(date +"%T") ******"
 
-TMP_LOCAL="/local/work/$(whoami)/A01/${PARTICIPANT_ID}"
+TMP_LOCAL="${TMP_FMRIPREP}/jobs/${PARTICIPANT_ID}"
 echo "\${TMP_LOCAL}"
 
 # directory for single sub BIDS
