@@ -121,40 +121,10 @@ rsync -a --copy-links "${dataset_description_path}" "\${participant_data_in}"
 # create local copy of the freesurfer license
 cp "${FREESURFER_LICENSE}" "\${TMP_LOCAL}/tmp/freesurfer_license.txt"
 
-# Per-node container cache
-SIF_CACHE_DIR="${TMP_FMRIPREP}/sif_cache"
-SIF="\${SIF_CACHE_DIR}/fmriprep-${REQUIRED_VERSION}.sif"
-mkdir -p "\${SIF_CACHE_DIR}"
-
-USE_CACHE=0
-if [[ -f "\${SIF}" ]]; then
-    echo "Found cached container image, verifying checksum..."
-    if echo "${SIF_SHA256}  \${SIF}" | sha256sum --check --status; then
-        USE_CACHE=1
-        echo "Found valid cached container image that is going to be re-used for this run..."
-    else
-        echo "Found cached container image does not match expected hashsum and will not be used in this run..."
-        rm -f "\${SIF}"
-    fi
-fi
-
-if [[ \${USE_CACHE} -eq 0 ]]; then
-    echo "Copying container image to node-local cache..."
-    if ! cp "${CONTAINER}" "\${SIF}.tmp.\$\$"; then
-        echo "Copying the container image failed"
-        rm -f "\${SIF}.tmp.\$\$"
-        rm -rf "\${TMP_LOCAL}"
-        exit 1
-    fi
-    mv "\${SIF}.tmp.\$\$" "\${SIF}"
-    echo "Verifying copied container image..."
-    if ! echo "${SIF_SHA256}  \${SIF}" | sha256sum --check --status; then
-        echo "ERROR: checksum of the copied container does not match and therefore gets removed and whole run canceled"
-        rm -f "\${SIF}"
-        rm -rf "\${TMP_LOCAL}"
-        exit 1
-    fi
-fi
+# copy the apptainer image
+SIF="\${TMP_LOCAL}/apptainer_image/${PARTICIPANT_ID}/fmriprep.sif"
+mkdir -p "\$(dirname "\${SIF}")"
+cp "${CONTAINER}" "\${SIF}"
 
 # NEW: verify the fMRIPrep version on the compute node as well
 FMRIPREP_VERSION=\$(apptainer exec --cleanenv "\${SIF}" fmriprep --version 2>&1)
