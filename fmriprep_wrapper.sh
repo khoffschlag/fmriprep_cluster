@@ -1,7 +1,7 @@
 #!/bin/bash
 #SBATCH --time=336:00:00
 #SBATCH --partition=cpu_nodes
-#SBATCH --cpus-per-task 2
+#SBATCH --cpus-per-task=2
 #SBATCH --mem=2G
 
 
@@ -91,7 +91,7 @@ for participant_folder in ${INDIR}/sub-*; do
 #SBATCH --error="${LOG_PATH}/${PARTICIPANT_ID}.out"
 #SBATCH --time=96:00:00
 #SBATCH --nice=${NICE}
-#SBATCH --cpus-per-task ${CPUS_PER_TASK}
+#SBATCH --cpus-per-task=${CPUS_PER_TASK}
 #SBATCH --mem=90G
 
 echo "****** Starting on \$(hostname) at \$(date +"%T") ******"
