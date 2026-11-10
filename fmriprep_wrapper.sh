@@ -1,8 +1,8 @@
 #!/bin/bash
 #SBATCH --time=336:00:00
 #SBATCH --partition=cpu_nodes
-#SBATCH --cpus-per-task 8
-#SBATCH --mem=8G
+#SBATCH --cpus-per-task 2
+#SBATCH --mem=2G
 
 
 # Set default values
