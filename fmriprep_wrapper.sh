@@ -99,6 +99,8 @@ echo "****** Starting on \$(hostname) at \$(date +"%T") ******"
 TMP_LOCAL="${TMP_FMRIPREP}/jobs/${PARTICIPANT_ID}"
 echo "\${TMP_LOCAL}"
 
+trap 'rm -rf "\${TMP_LOCAL}"' EXIT
+
 # directory for single sub BIDS
 participant_data_in="\${TMP_LOCAL}/input/${PARTICIPANT_ID}"
 echo "\${participant_data_in}"
