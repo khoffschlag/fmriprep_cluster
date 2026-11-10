@@ -11,6 +11,7 @@ NICE=5
 SUBMIT_DELAY=90  # DO NOT DECREASE - only increase if wanted
 CPUS_PER_TASK=15
 REQUIRED_VERSION="25.2.7"
+SIF_SHA256="d63c20ae73f4356e8252341216f0b3263c344eed4b93d2473ea401ffb374e4f7"  # keep in mind to update once fmriprep version is upgraded in script!!
 
 
 # this is called with the -h help function
@@ -121,10 +122,40 @@ rsync -a --copy-links "${dataset_description_path}" "\${participant_data_in}"
 # create local copy of the freesurfer license
 cp "${FREESURFER_LICENSE}" "\${TMP_LOCAL}/tmp/freesurfer_license.txt"
 
-# copy the apptainer image
-SIF="\${TMP_LOCAL}/apptainer_image/${PARTICIPANT_ID}/fmriprep.sif"
-mkdir -p "\$(dirname "\${SIF}")"
-cp "${CONTAINER}" "\${SIF}"
+# Per-node container cache
+SIF_CACHE_DIR="${TMP_FMRIPREP}/sif_cache"
+SIF="\${SIF_CACHE_DIR}/fmriprep-${REQUIRED_VERSION}.sif"
+mkdir -p "\${SIF_CACHE_DIR}"
+
+USE_CACHE=0
+if [[ -f "\${SIF}" ]]; then
+    echo "Found cached container image, verifying checksum..."
+    if echo "${SIF_SHA256}  \${SIF}" | sha256sum --check --status; then
+        USE_CACHE=1
+        echo "Found valid cached container image that is going to be re-used for this run..."
+    else
+        echo "Found cached container image does not match expected hashsum and will not be used in this run..."
+        rm -f "\${SIF}"
+    fi
+fi
+
+if [[ \${USE_CACHE} -eq 0 ]]; then
+    echo "Copying container image to node-local cache..."
+    if ! cp "${CONTAINER}" "\${SIF}.tmp.\$\$"; then
+        echo "Copying the container image failed"
+        rm -f "\${SIF}.tmp.\$\$"
+        rm -rf "\${TMP_LOCAL}"
+        exit 1
+    fi
+    mv "\${SIF}.tmp.\$\$" "\${SIF}"
+    echo "Verifying copied container image..."
+    if ! echo "${SIF_SHA256}  \${SIF}" | sha256sum --check --status; then
+        echo "ERROR: checksum of the copied container does not match and therefore gets removed and whole run canceled"
+        rm -f "\${SIF}"
+        rm -rf "\${TMP_LOCAL}"
+        exit 1
+    fi
+fi
 
 # NEW: verify the fMRIPrep version on the compute node as well
 FMRIPREP_VERSION=\$(apptainer exec --cleanenv "\${SIF}" fmriprep --version 2>&1)
@@ -155,7 +186,7 @@ rm -rf "\${participant_data_out}"
 rm -rf "\${participant_tmp}"
 rm -rf "\${TMP_LOCAL}"
 
-echo "****** Ended on \$(hostname) at \$(date +"%T") "******"
+echo "****** Ended on \$(hostname) at \$(date +"%T") ******"
 
 exit \${FMRIPREP_EXIT}
 
