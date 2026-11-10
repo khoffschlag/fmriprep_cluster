@@ -51,11 +51,11 @@ while getopts "i:o:a:t:f:l:m:n:d:c:h" opt; do
   esac
 done
 
-echo "Verifying temporary directory is in /local..."
-if [[ "${TMP_FMRIPREP}" != /local/* ]]; then
-    echo "Error: Temporary directory must be in /local"
+echo "Verifying temporary directory is in /local/work..."
+if [[ "${TMP_FMRIPREP}" != /local/work/* ]]; then
+    echo "Error: Temporary directory must be in /local/work/"
     echo "Current value: ${TMP_FMRIPREP}"
-    echo "Please specify a path starting with /local/"
+    echo "Please specify a path starting with /local/work/"
     exit 1
 fi
 

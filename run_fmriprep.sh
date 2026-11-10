@@ -80,11 +80,11 @@ if [ -d "${OUTPUT_DIR}" ] && [ -n "$(ls -A "${OUTPUT_DIR}" 2>/dev/null)" ]; then
 fi
 
 echo "Work directory set to: ${WORK_DIR}"
-echo "Verifying work directory is in /local..."
-if [[ "${WORK_DIR}" == /local/* ]]; then
-    echo "Work directory is correctly in /local"
+echo "Verifying work directory is in /local/work..."
+if [[ "${WORK_DIR}" == /local/work/* ]]; then
+    echo "Work directory is correctly in /local/work"
 else
-    echo "Error: Work directory is NOT in /local"
+    echo "Error: Work directory is NOT in /local/work"
     exit 1
 fi
 
