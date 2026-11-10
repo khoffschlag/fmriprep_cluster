@@ -99,7 +99,16 @@ echo "****** Starting on \$(hostname) at \$(date +"%T") ******"
 TMP_LOCAL="${TMP_FMRIPREP}/jobs/${PARTICIPANT_ID}"
 echo "\${TMP_LOCAL}"
 
-trap 'rm -rf "\${TMP_LOCAL}"' EXIT
+LOG_LOCAL="\${TMP_LOCAL}/fmriprep.log"
+LOG_NFS="${LOG_PATH}/${PARTICIPANT_ID}.fmriprep.log"
+
+cleanup() {
+    if [[ -f "\${LOG_LOCAL}" ]]; then
+        cp "\${LOG_LOCAL}" "\${LOG_NFS}" || true
+    fi
+    rm -rf "\${TMP_LOCAL}"
+}
+trap cleanup EXIT
 
 # directory for single sub BIDS
 participant_data_in="\${TMP_LOCAL}/input/${PARTICIPANT_ID}"
@@ -175,7 +184,10 @@ apptainer exec --cleanenv -B "\${TMP_LOCAL}":"\${TMP_LOCAL}" "\${SIF}" \\
     --nthreads ${CPUS_PER_TASK} \\
     --omp-nthreads 4 \\
     --mem_mb 80000 \\
-    --fs-license-file "\${TMP_LOCAL}/tmp/freesurfer_license.txt"
+    --fs-license-file "\${TMP_LOCAL}/tmp/freesurfer_license.txt" \
+    > "\${TMP_LOCAL}/fmriprep.log" 2>&1
+
+
 FMRIPREP_EXIT=\$?
 echo "fMRIPrep exit code: \${FMRIPREP_EXIT}"
 
@@ -186,7 +198,6 @@ cp -r \${participant_data_out}/* "${OUTDIR}/"
 rm -rf "\${participant_data_in}"
 rm -rf "\${participant_data_out}"
 rm -rf "\${participant_tmp}"
-rm -rf "\${TMP_LOCAL}"
 
 echo "****** Ended on \$(hostname) at \$(date +"%T") ******"
 
