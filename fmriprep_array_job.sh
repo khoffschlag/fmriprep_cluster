@@ -108,7 +108,8 @@ fi
 apptainer exec --cleanenv -B "${TMP_LOCAL}":"${TMP_LOCAL}" "${SIF}" \
     fmriprep "${participant_data_in}" "${participant_data_out}" participant \
     -w "${participant_tmp}" \
-    --output-spaces anat func MNI152NLin2009cAsym:res-2 \
+    --output-spaces MNI152NLin2009cAsym:res-2 \
+    --task-id rest \
     --nthreads ${CPUS_PER_TASK} \
     --omp-nthreads 4 \
     --mem_mb 80000 \

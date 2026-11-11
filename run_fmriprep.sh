@@ -14,7 +14,7 @@ WORK_DIR="/local/work/${USERNAME}_fmriprep-25.2.7/"        # Working dir on the 
 MAX_JOBS=69
 
 # Set output directory (NEW directory - never mix with derivatives from other fMRIPrep versions)
-OUTPUT_DIR="${DATASET_PATH}/derivatives/fmriprep-25.2.7_allTasks/"
+OUTPUT_DIR="${DATASET_PATH}/derivatives/fmriprep-25.2.7_desc-onlyRest/"
 
 # Set to 1 only if you deliberately want to continue into an existing, non-empty output directory
 ALLOW_EXISTING_OUTPUT=0
