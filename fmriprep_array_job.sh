@@ -123,6 +123,7 @@ echo "fMRIPrep exit code: ${FMRIPREP_EXIT}"
 
 # Move results to the output directory
 rsync -a "${participant_data_out}/" "${OUTDIR}/"
+echo "rsync exit code: $?"
 
 # Remove (most) files from cluster
 rm -rf "${participant_data_in}"
