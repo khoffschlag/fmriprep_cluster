@@ -19,6 +19,8 @@ fi
 
 echo "****** Task ${TASK_ID} (${PARTICIPANT_ID}) starting on $(hostname) at $(date +"%T") ******"
 
+sleep $((RANDOM % 600))
+
 TMP_LOCAL="${TMP_FMRIPREP}/jobs/${PARTICIPANT_ID}"
 echo "${TMP_LOCAL}"
 
@@ -120,7 +122,7 @@ FMRIPREP_EXIT=$?
 echo "fMRIPrep exit code: ${FMRIPREP_EXIT}"
 
 # Move results to the output directory
-cp -r ${participant_data_out}/* "${OUTDIR}/"
+rsync -a "${participant_data_out}/" "${OUTDIR}/"
 
 # Remove (most) files from cluster
 rm -rf "${participant_data_in}"
